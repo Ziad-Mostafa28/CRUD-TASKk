@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import React, { ChangeEvent, useEffect, useState } from "react";
 
-const EditPage = ({ params }: { params: Promise<{ id: string }> }) => {
-  const resolvedParams = React.use(params); // Unwrap the params promise
+const EditPage = ({ params }: { params: { id: string } }) => {
   const [formData, setFormData] = useState({ term: "", interpretation: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,25 +13,25 @@ const EditPage = ({ params }: { params: Promise<{ id: string }> }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`/api/interpretations/${resolvedParams.id}`);
+        const response = await fetch(`/api/interpretations/${params.id}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
 
         const data = await response.json();
-        setFormData({
-          term: data.interpretation.term,
-          interpretation: data.interpretation.interpretation
+        setFormData({ 
+          term: data.interpretation.term, 
+          interpretation: data.interpretation.interpretation 
         });
-      } catch (err) {
-        console.error("Error:", err);
+      } catch (err) { // Changed variable name to err
+        console.error("Error fetching data:", err);
         setError("Failed to load interpretation");
       }
     };
 
     fetchData();
-  }, [resolvedParams.id]);
+  }, [params.id]); // Added params.id dependency
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -54,10 +53,10 @@ const EditPage = ({ params }: { params: Promise<{ id: string }> }) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/interpretations/${resolvedParams.id}`, {
+      const response = await fetch(`/api/interpretations/${params.id}`, {
         method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', // Fixed header name
         },
         body: JSON.stringify(formData),
       });
@@ -65,8 +64,8 @@ const EditPage = ({ params }: { params: Promise<{ id: string }> }) => {
         throw new Error('Failed to update');
       }
       router.push("/");
-    } catch (err) {
-      console.error("Error:", err);
+    } catch (err) { // Changed variable name to err
+      console.error("Error updating:", err);
       setError("Something went wrong");
     } finally {
       setIsLoading(false);

@@ -52,11 +52,10 @@ async function updateInterpretation(id: string, data: { term: string, interpreta
 
 export async function GET(
     req: Request,
-    context: { params: { id: string } }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = context.params;
-        const interpretation = await fetchInterpretation(id);
+        const interpretation = await fetchInterpretation(params.id);
         return NextResponse.json({ interpretation });
     } catch (err) { // Changed from error to err
         console.error('GET error:', err);
@@ -69,11 +68,10 @@ export async function GET(
 
 export async function DELETE(
     req: Request,
-    context: { params: { id: string } }
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = context.params;
-        await deleteInterpretation(id);
+        await deleteInterpretation(params.id);
         return NextResponse.json({ message: "Interpretation deleted" });
     } catch (err) { // Changed from error to err
         console.error('DELETE error:', err);
@@ -86,13 +84,11 @@ export async function DELETE(
 
 export async function PUT(
     req: Request,
-    context: { params: { id: string } }
-
+    { params }: { params: { id: string } }
 ) {
     try {
-        const { id } = context.params;
         const interpretation = await req.json();
-        await updateInterpretation(id, interpretation);
+        await updateInterpretation(params.id, interpretation);
         return NextResponse.json({ message: "Interpretation updated" });
     } catch (err) { // Changed from error to err
         console.error('PUT error:', err);
