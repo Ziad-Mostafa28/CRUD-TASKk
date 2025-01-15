@@ -1,5 +1,5 @@
 import client from "@/lib/appwrite_client";
-import { Databases, ID, Query } from "appwrite";
+import { Databases, ID, Query, Models } from "appwrite";
 import { NextResponse } from "next/server";
 
 const database = new Databases(client);
@@ -8,33 +8,33 @@ const database = new Databases(client);
 async function createInterpretation(data: {
   term: string;
   interpretation: string;
-}) {
+}): Promise<Models.Document> {
   try {
-    const response = await database.createDocument(
+    const document = await database.createDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID as string,
-      "6786c7eb003c9f22421c", // Ensure this is the correct collection ID
+      "6786c7eb003c9f22421c",
       ID.unique(),
       data
     );
-    return response;
-  } catch (error) {
-    console.error("Error creating interpretation", error);
+    return document;
+  } catch (err) {
+    console.error("Error creating interpretation:", err);
     throw new Error("Failed to create interpretation");
   }
 }
 
 // fetch interpretation
-async function fetchInterpretations() {
+async function fetchInterpretations(): Promise<Models.Document[]> {
   try {
     const response = await database.listDocuments(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID as string,
-      "6786c7eb003c9f22421c", // Ensure this is the correct collection ID
-      [Query.orderDesc("$createdAt")] // Fixed space in query
+      "6786c7eb003c9f22421c",
+      [Query.orderDesc("$createdAt")]
     );
     return response.documents;
-  } catch (error) {
-    console.error("Error fetching interpretation", error);
-    throw new Error("Failed to fetch interpretation");
+  } catch (err) {
+    console.error("Error fetching interpretations:", err);
+    throw new Error("Failed to fetch interpretations");
   }
 }
 
@@ -42,9 +42,14 @@ export async function POST(req: Request) {
   try {
     const { term, interpretation } = await req.json();
     const data = { term, interpretation };
-    const response = await createInterpretation(data);
-    return NextResponse.json({ message: "Interpretation created" });
-  } catch (error) {
+    const document = await createInterpretation(data);
+    
+    return NextResponse.json({ 
+      message: "Interpretation created", 
+      document 
+    });
+  } catch (err) {
+    console.error("POST error:", err);
     return NextResponse.json(
       {
         error: "Failed to create interpretation"
@@ -55,16 +60,15 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-    try {
-      const interpretations = await fetchInterpretations();
-      console.log("API response:", interpretations); // Add this log
-      return NextResponse.json(interpretations);
-    } catch (error) {
-      console.error("API error:", error); // Add this log
-      return NextResponse.json(
-        { error: "Failed to fetch interpretations" },
-        { status: 500 }
-      );
-    }
+  try {
+    const interpretations = await fetchInterpretations();
+    console.log("API response:", interpretations);
+    return NextResponse.json(interpretations);
+  } catch (err) {
+    console.error("GET error:", err);
+    return NextResponse.json(
+      { error: "Failed to fetch interpretations" },
+      { status: 500 }
+    );
   }
- 
+}
